@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Matrix HMS{% endblock %}
+
+{% block style %}
+<style>
+    .hero {
+        background-image: url(/static/images/female\ doctor.jpeg);
+        height: 92.2vh;
+        background-size: cover;
+        display: flex;
+        justify-content: start;
+        align-items: center;
+    }
+
+    .hero .hero_text {
+        color: white;
+        font-family: papyrus, sans-serif;
+        letter-spacing: 3px;
+        font-weight: bolder;
+        /* border: 2px solid white; */
+        width: 50%;
+        margin-left: 13%;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="hero">
+    <div class="hero_text">
+        <h1>One Stop <br> Digital Healthcare <br> Solutions for Clinics <br> & Hospitals</h1>
+        <br>
+        <p style="font-size: 18px;">Hospital Management System (HMS) <br> web application that allows Admins, Doctors,
+            and Patients <br> to
+            interact with the system <br> based on their roles.</p>
+
+        <div>
+            <a href="{{ url_for('login') }}">
+                <button type="button" class="btn btn-light p-2" style="font-family: 'Times New Roman';">Get Started</button>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

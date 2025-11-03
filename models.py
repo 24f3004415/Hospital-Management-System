@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
-# Initializing the database
+# Creating the database
 db = SQLAlchemy()
 
 # ------------------ Model Users (Base Class) ------------------
