@@ -4,23 +4,125 @@
 
 {% block style %}
 <style>
-    .login-container {
-        max-width: 400px;
-        margin: 50px auto;
-        padding: 30px;
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-        border-radius: 10px;
-        background-color: white;
+    body {
+        background-color: #f4f7f8;
+        font-family: Arial, sans-serif;
+        background-image: url('/static/images/background.png');
+        height: 92.3vh;
+        background-size: cover;
     }
 
-    .login-form input {
-        margin-bottom: 15px;
+    .login-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 60px;
+        max-width: 900px;
+        margin: 50px auto;
+        padding: 20px;
+    }
+
+    .doctor-image img {
+        height: 83vh;      
+        width: auto;         
+    }
+
+    .login-container {
+        
+        min-width: 450px;       
+        height: 550px;      
+        padding: 30px 40px;
+        border-radius: 10px;
+        background-color: white;
+        text-align: center;
+    }
+
+    .login-container h2 {
+        margin-bottom: 25px;
+        color: #333;
+        font-weight: 600;
+    }
+
+    form {
+        text-align: left;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: #444;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    select {
+        width: 100%;
+        padding: 10px 12px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus,
+    select:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+
+    button[type="submit"] {
+        width: 100%;
+        padding: 12px 0;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #0056b3;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="login-container">
-    login page for Hospital Management System
+<div class="login-wrapper">
+    <div class="doctor-image">
+        <img src="/static/images/male doctor.png" alt="Doctor Image">
+    </div>
+
+    <div class="login-container">
+        <h2>Login to Matrix HMS</h2>
+        <form action="/login" method="post">
+            <label for="user_name">Enter your username:</label>
+            <input type="text" id="user_name" name="user_name" placeholder="john Doe" required>
+
+            <label for="useremail">Enter your Email:</label>
+            <input type="email" id="useremail" name="user_email" placeholder="JohnDoe@hms.com" required>
+
+            <label for="password">Enter the password:</label>
+            <input type="password" id="password" name="user_password" placeholder="******" required>
+
+            <label for="role">Select your role:</label>
+            <select name="user_role" id="role" required>
+                <option value="" disabled selected>Select your role</option>
+                <option value="admin">Admin</option>
+                <option value="doctor">Doctor</option>
+                <option value="patient">Patient</option>
+            </select>
+
+            <button type="submit">Log In</button>
+        </form>
+    </div>
 </div>
 {% endblock %}
