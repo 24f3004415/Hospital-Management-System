@@ -10,6 +10,7 @@
         background-image: url('/static/images/background.png');
         height: 92.3vh;
         background-size: cover;
+        overflow: hidden;
     }
 
     .login-wrapper {
@@ -19,18 +20,17 @@
         gap: 60px;
         max-width: 900px;
         margin: 50px auto;
-        padding: 20px;
+        /* /* padding: 20px; */
+        /* border: 2px solid red;  */
     }
 
     .doctor-image img {
-        height: 83vh;      
-        width: auto;         
+        height: 86vh;
+        width: auto;
     }
 
     .login-container {
-        
-        min-width: 450px;       
-        height: 550px;      
+        min-width: 450px;
         padding: 30px 40px;
         border-radius: 10px;
         background-color: white;
@@ -68,21 +68,13 @@
         transition: border-color 0.3s ease;
     }
 
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    input[type="password"]:focus,
-    select:focus {
-        border-color: #007bff;
-        outline: none;
-    }
-
     button[type="submit"] {
         width: 100%;
-        padding: 12px 0;
+        padding: 12px;
         background-color: #007bff;
         color: white;
         border: none;
-        border-radius: 6px;
+        border-radius: 50px;
         font-size: 16px;
         font-weight: 600;
         cursor: pointer;
@@ -91,6 +83,16 @@
 
     button[type="submit"]:hover {
         background-color: #0056b3;
+    }
+
+    .flash-message {
+        background-color: #f44336;
+        color: white;
+        padding: 8px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
     }
 </style>
 {% endblock %}
@@ -103,6 +105,18 @@
 
     <div class="login-container">
         <h2>Login to Matrix HMS</h2>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="flash-message">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
         <form action="/login" method="post">
             <label for="user_name">Enter your username:</label>
             <input type="text" id="user_name" name="user_name" placeholder="john Doe" required>
@@ -122,7 +136,9 @@
             </select>
 
             <button type="submit">Log In</button>
+            <p>Don't have an account? <a href="{{ url_for('signup') }}">SignUp</a> </p>
         </form>
+
     </div>
 </div>
 {% endblock %}

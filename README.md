@@ -6,7 +6,7 @@ Name- Mohit Kumar Rai
 Roll No - 24f3004415
 
 """
-RELATIONSHIP MAPPING (for easy reference):
+RELATIONSHIP MAPPING:
 
 1. User ←→ Doctor (one-to-one)
    - User.doctor_profile ←→ Doctor.user

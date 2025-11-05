@@ -25,24 +25,22 @@ def login():
         return render_template('login.html')
     
     if request.method == 'POST':
-        user_name = request.form.get('user_name')
         user_email = request.form.get('user_email')
         user_password = request.form.get('user_password')
-        user_role = request.form.get('user_role')
 
         user = User.query.filter_by(user_email=user_email).first()
 
-        if user:
-            flash(f'Welcome, {user.user_name}!')
+        if user and user.user_password == user_password:
 
             if user.user_role == 'admin':
-                return redirect(url_for('admin_dashboard'))
+                return redirect(url_for('admin_dashboard', username=user.user_name))
             elif user.user_role == 'doctor':
-                return redirect(url_for('doctor_dashboard'))
+                return redirect(url_for('doctor_dashboard', username=user.user_name))
             elif user.user_role == 'patient':
-                return redirect(url_for('patient_dashboard'))
+                return redirect(url_for('patient_dashboard', username=user.user_name))
         else:
-            flash('Invalid credentials. Please try again.')
+            flash('Invalid email or password. Please try again.')
+            return redirect(url_for('login'))
     
 
 
@@ -50,9 +48,18 @@ def login():
 def signup():
     return render_template('signup.html')
 
-@app.route('/admin_dashboard')
-def admin_dashboard():
-    return render_template('AdminUI/admin_dashboard.html')
+
+@app.route('/admin_dashboard/<username>')
+def admin_dashboard(username):
+    return render_template('AdminUI/admin_dashboard.html', username=username)
+
+@app.route('/doctor_dashboard/<username>')
+def doctor_dashboard(username):
+    return render_template('DoctorUI/doctor_dashboard.html', username=username)
+
+@app.route('/patient_dashboard/<username>')
+def patient_dashboard(username):
+    return render_template('PatientUI/patient_dashboard.html', username=username)
 
 
 
