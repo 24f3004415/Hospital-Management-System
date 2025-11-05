@@ -15,7 +15,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 
     <!-- Block for child template CSS -->
-    {% block style %}{% endblock %}
+    {% block style %}
+    {% endblock %}
 </head>
 
 <body>
@@ -23,7 +24,7 @@
         <a class="navbar-brand px-3" href="{{ url_for('landing_page') }}">Matrix HMS</a>
         <div class="px-3">
             <a href="{{ url_for('login') }}"><button type="button" class="btn btn-light">Login</button></a>
-            <a href="{{ url_for('signup') }}"><button type="button" class="btn btn-light">SignUp</button></a>
+            <a href="{{ url_for('register') }}"><button type="button" class="btn btn-light">Register</button></a>
         </div>
     </nav>
 

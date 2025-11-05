@@ -44,8 +44,32 @@ def login():
     
 
 
-@app.route('/signup')
-def signup():
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        existing_user = User.query.filter_by(user_email=email).first()
+        
+        if existing_user:
+            flash('Email already registered!')
+            return redirect(url_for('register'))
+        
+        new_user = User(
+            user_name=name,
+            user_email=email,
+            user_password=password,
+            user_role='patient'
+        )
+        
+        db.session.add(new_user)
+        db.session.commit()
+        
+        flash('Registration successful! Please login.')
+        return redirect(url_for('login'))
+    
     return render_template('signup.html')
 
 
