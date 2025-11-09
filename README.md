@@ -31,29 +31,3 @@ RELATIONSHIP MAPPING:
 
 8. Doctor ←→ DoctorAvailability (one-to-many)
    - Doctor.availability_slots ←→ DoctorAvailability.doctor
-
-USAGE EXAMPLES:
-
-# Access doctor from user
-user = User.query.get(1)
-if user.user_role == 'doctor':
-    doctor_name = user.doctor_profile.doctor_name
-    department = user.doctor_profile.department.department_name
-
-# Access appointments for a patient
-patient = Patient.query.get(1)
-for appointment in patient.appointments:
-    print(appointment.doctor.doctor_name)
-    print(appointment.appointment_date)
-
-# Access treatment from appointment
-appointment = Appointment.query.get(1)
-if appointment.treatment:
-    print(appointment.treatment.diagnosis)
-
-# Access patient history
-patient = Patient.query.get(1)
-for history in patient.medical_history:
-    print(history.diagnosis)
-    print(history.doctor_name)
-"""
