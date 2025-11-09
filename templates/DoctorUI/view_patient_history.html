@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Patient Medical History{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h4 class="text-primary mb-3">Patient Medical History</h4>
+
+  <div class="card mb-3 p-3 shadow-sm">
+    <h5 class="card-title">{{ patient.patient_name }}</h5>
+    <p class="card-text mb-1"><strong>Patient ID:</strong> {{ patient.id }}</p>
+    <p class="card-text mb-0"><strong>Total Visits:</strong> {{ history_records|length }}</p>
+  </div>
+
+  {% if history_records %}
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Date</th>
+          <th>Visit Type</th>
+          <th>Department</th>
+          <th>Doctor</th>
+          <th>Diagnosis</th>
+          <th>Treatment</th>
+          <th>Prescription</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in history_records %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ record.created_at.strftime('%Y-%m-%d') }}</td>
+          <td>{{ record.visit_type or '-' }}</td>
+          <td>{{ record.department or '-' }}</td>
+          <td>{{ record.doctor_name or record.doctor.user.user_name }}</td>
+          <td>{{ record.diagnosis or '-' }}</td>
+          <td>{{ record.treatment or '-' }}</td>
+          <td>{{ record.prescription or '-' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="alert alert-info">No medical history available for this patient.</div>
+  {% endif %}
+
+  <a href="{{ url_for('doctor_dashboard', username=username) }}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+</div>
+{% endblock %}

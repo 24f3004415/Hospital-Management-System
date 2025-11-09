@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Doctor Availability{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h4 class="text-primary mb-3">Doctors's Availability</h4>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, msg in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ msg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Day</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Available?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in next_week %}
+                    {% set record = availability.get(d) %}
+                    <tr>
+                        <td>{{ d.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ d.strftime('%A') }}</td>
+                        <td>
+                            <input type="time" name="start_{{ d }}" class="form-control"
+                                value="{{ record.start_time.strftime('%H:%M') if record else '' }}" required>
+                        </td>
+                        <td>
+                            <input type="time" name="end_{{ d }}" class="form-control"
+                                value="{{ record.end_time.strftime('%H:%M') if record else '' }}" required>
+                        </td>
+                        <td class="text-center">
+                            <input type="checkbox" name="avail_{{ d }}" {% if record and record.is_available %}checked{%
+                                endif %}>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between mt-3">
+            <a href="{{ url_for('doctor_dashboard', username=username) }}" class="btn btn-secondary">Back</a>
+            <button type="submit"  class="btn btn-success">
+                Save Availability
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 from flask import Flask, redirect, url_for,render_template,request,session,flash
 from models import db, User, Doctor, Patient, Department, Appointment, DoctorAvailability, PatientHistory
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 app = Flask(__name__)
 
@@ -417,6 +417,92 @@ def add_history(username, appointment_id):
                            appointment=appointment,
                            patient=patient)
 
+#route to view patient history
+@app.route('/doctor/<string:username>/patient/<int:patient_id>/history')
+def view_patient_history(username, patient_id):
+    """Displays complete medical history of a selected patient for a doctor."""
+    user = User.query.filter_by(user_name=username, user_role='doctor').first()
+    if not user:
+        flash("Doctor not found.", "danger")
+        return redirect(url_for('login'))
+
+    doctor = Doctor.query.filter_by(id=user.id).first()
+    patient = Patient.query.get_or_404(patient_id)
+
+    # Fetch all history records for this patient (any doctor)
+    history_records = (
+        PatientHistory.query
+        .filter_by(patient_id=patient.id)
+        .order_by(PatientHistory.created_at.desc())
+        .all()
+    )
+
+    return render_template(
+        'DoctorUI/view_patient_history.html',
+        username=username,
+        doctor=doctor,
+        patient=patient,
+        history_records=history_records
+    )
+
+#route to manage doctor availability
+@app.route('/doctor/<string:username>/availability', methods=['GET', 'POST'])
+def manage_availability(username):
+    """Show and update availability for next 7 days."""
+    user = User.query.filter_by(user_name=username, user_role='doctor').first()
+    if not user:
+        flash("Doctor not found.", "danger")
+        return redirect(url_for('login'))
+
+    doctor = Doctor.query.filter_by(id=user.id).first()
+
+    # Generate next 7 days list (including today)
+    today = date.today()
+    next_week = [today + timedelta(days=i) for i in range(7)]
+
+    # Handle form submission
+    if request.method == 'POST':
+        for d in next_week:
+            start_str = request.form.get(f"start_{d}")
+            end_str = request.form.get(f"end_{d}")
+            available = request.form.get(f"avail_{d}") == 'on'
+
+            # Only save if both times are provided
+            if start_str and end_str:
+                start_time = datetime.strptime(start_str, "%H:%M").time()
+                end_time = datetime.strptime(end_str, "%H:%M").time()
+
+                slot = DoctorAvailability.query.filter_by(doctor_id=doctor.id, date=d).first()
+                if not slot:
+                    slot = DoctorAvailability(
+                        doctor_id=doctor.id,
+                        date=d,
+                        start_time=start_time,
+                        end_time=end_time,
+                        is_available=available
+                    )
+                    db.session.add(slot)
+                else:
+                    slot.start_time = start_time
+                    slot.end_time = end_time
+                    slot.is_available = available
+
+        db.session.commit()
+        flash("Availability updated successfully!", "success")
+        return redirect(url_for('manage_availability', username=username))
+
+    # Fetch existing availability records for display
+    availability = {
+        slot.date: slot for slot in DoctorAvailability.query.filter_by(doctor_id=doctor.id).all()
+    }
+
+    return render_template(
+        'DoctorUI/manage_availability.html',
+        username=username,
+        doctor=doctor,
+        next_week=next_week,
+        availability=availability
+    )
 
 @app.route('/patient_dashboard/<username>')
 def patient_dashboard(username):
