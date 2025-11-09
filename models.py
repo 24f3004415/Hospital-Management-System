@@ -44,7 +44,7 @@ class Department(db.Model):
 class Doctor(db.Model):
     """
     Doctor profile extending User
-    Relationships: user, department, appointments, availability_slots
+    Relationships: user, department, appointments, availability_slots, patient_histories
     """
     __tablename__ = 'doctors'
 
@@ -57,6 +57,7 @@ class Doctor(db.Model):
     department = db.relationship('Department', back_populates='doctors')
     appointments = db.relationship('Appointment', back_populates='doctor', lazy=True)
     availability_slots = db.relationship('DoctorAvailability', back_populates='doctor', cascade='all, delete-orphan')
+    patient_histories = db.relationship('PatientHistory', back_populates='doctor', lazy=True)
 
 
 # ------------------ Patient Model ------------------
@@ -80,7 +81,7 @@ class Patient(db.Model):
 class Appointment(db.Model):
     """
     Appointment bookings between patients and doctors
-    Relationships: patient, doctor, treatment
+    Relationships: patient, doctor, history_record
     """
     __tablename__ = 'appointments'
 
@@ -95,53 +96,47 @@ class Appointment(db.Model):
     # Relationships
     patient = db.relationship('Patient', back_populates='appointments')
     doctor = db.relationship('Doctor', back_populates='appointments')
-    treatment = db.relationship('Treatment', back_populates='appointment', uselist=False, cascade='all, delete-orphan')
-
-
-# ------------------ Treatment Model ------------------
-class Treatment(db.Model):
-    """
-    Treatment records for completed appointments
-    Relationships: appointment (one-to-one)
-    """
-    __tablename__ = 'treatments'
-
-    id = db.Column(db.Integer, primary_key=True)
-    appointment_id = db.Column(db.Integer, db.ForeignKey('appointments.id'), nullable=False, unique=True)
-    diagnosis = db.Column(db.Text)
-    prescription = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Relationship
-    appointment = db.relationship('Appointment', back_populates='treatment')
+    history_record = db.relationship('PatientHistory', back_populates='appointment', uselist=False)
 
 
 # ------------------ Patient History Model ------------------
 class PatientHistory(db.Model):
     """
-    Consolidated patient medical history
-    Relationships: patient (many-to-one)
+    Consolidated patient medical history.
+    Stores complete treatment information including diagnosis, prescription, and appointment details.
+    This replaces the separate Treatment table for a simpler, unified approach.
+    Relationships: patient, doctor, appointment
     """
     __tablename__ = 'patient_history'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    visit_type = db.Column(db.String(50))  # 'in-person', 'online'
-    test_type = db.Column(db.String(100))  # 'ECG', 'Blood Test', etc.
-    diagnosis = db.Column(db.Text)
-    prescription = db.Column(db.Text)
-    doctor_name = db.Column(db.String(100))
-    department = db.Column(db.String(100))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointments.id'), unique=True)   
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'))             
     
-    # Relationship
+    # Medical information
+    visit_type = db.Column(db.String(50))       # e.g., 'Consultation', 'Follow-up', 'Emergency'
+    test_type = db.Column(db.String(100))       # e.g., 'Blood Test', 'X-Ray', 'MRI'
+    diagnosis = db.Column(db.Text)              # Doctor's diagnosis
+    treatment = db.Column(db.Text)              # Treatment plan/procedure performed
+    prescription = db.Column(db.Text)           # Medicines prescribed
+    
+    # Redundant fields for easier querying (denormalized)
+    doctor_name = db.Column(db.String(100))     # Doctor's name at time of visit
+    department = db.Column(db.String(100))      # Department name at time of visit
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships (using back_populates for bidirectional relationships)
     patient = db.relationship('Patient', back_populates='medical_history')
+    doctor = db.relationship('Doctor', back_populates='patient_histories')
+    appointment = db.relationship('Appointment', back_populates='history_record')
 
 
 # ------------------ Doctor Availability Model ------------------
 class DoctorAvailability(db.Model):
     """
-    Doctor's available time slots
+    Doctor's available time slots for appointments
     Relationships: doctor (many-to-one)
     """
     __tablename__ = 'doctor_availability'

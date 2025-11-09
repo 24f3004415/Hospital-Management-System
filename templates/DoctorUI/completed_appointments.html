@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Completed Appointments{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h4 class="text-primary mb-3">Completed Appointments</h4>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, msg in messages %}
+    <div class="alert alert-{{ category }}">{{ msg }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {% if completed %}
+    <table class="table table-bordered table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Patient</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appt in completed %}
+            <tr>
+                <td>{{ appt.id }}</td>
+                <td>{{ appt.patient.patient_name }}</td>
+                <td>{{ appt.appointment_date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ appt.appointment_time.strftime('%H:%M') }}</td>
+                <td><span class="badge bg-success">{{ appt.status }}</span></td>
+                <td>
+                    <a href="{{ url_for('add_history', username=username, appointment_id=appt.id) }}"
+                        class="btn btn-primary btn-sm">Add Treatment Record</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No completed appointments yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

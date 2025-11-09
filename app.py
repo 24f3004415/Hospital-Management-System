@@ -1,6 +1,6 @@
 from flask import Flask, redirect, url_for,render_template,request,session,flash
-from models import db, User, Doctor, Patient, Department, Appointment, DoctorAvailability, PatientHistory, Treatment
-from datetime import datetime
+from models import db, User, Doctor, Patient, Department, Appointment, DoctorAvailability, PatientHistory
+from datetime import datetime, date
 
 app = Flask(__name__)
 
@@ -319,7 +319,103 @@ def blacklist_patient(patient_id):
 
 @app.route('/doctor_dashboard/<username>')
 def doctor_dashboard(username):
-    return render_template('DoctorUI/doctor_dashboard.html', username=username)
+    # Fetch doctor details based on username
+    user = User.query.filter_by(user_name=username, user_role='doctor').first()
+    if not user:
+        flash("Doctor not found.", "danger")
+        return redirect(url_for('login'))
+
+    doctor = Doctor.query.filter_by(id=user.id).first()
+    if not doctor:
+        flash("Doctor not found", "danger")
+        return redirect(url_for('login'))
+
+    # Fetch upcoming appointments (today and future)
+    today = date.today()
+    upcoming = Appointment.query.filter(
+        Appointment.doctor_id == doctor.id,
+        Appointment.appointment_date >= today,
+        Appointment.status == 'booked'
+    ).order_by(Appointment.appointment_date, Appointment.appointment_time).all()
+
+    # Assigned patients
+    patient_ids = {appt.patient_id for appt in doctor.appointments}
+    assigned_patients = Patient.query.filter(Patient.id.in_(patient_ids)).all() if patient_ids else []
+
+    return render_template('DoctorUI/doctor_dashboard.html',
+                           username=username,
+                           doctor=doctor,
+                           upcoming=upcoming,
+                           assigned_patients=assigned_patients)
+
+
+#route to mark appointment as completed or cancelled
+@app.route('/update_appointment_status/<int:appointment_id>/<string:action>/<username>', methods=['POST'])
+def update_appointment_status(appointment_id, action, username):
+    appointment = Appointment.query.get_or_404(appointment_id)
+
+    # Update appointment status
+    if action == 'complete':
+        appointment.status = 'completed'
+        flash(f"Appointment #{appointment.id} marked as completed.", "success")
+    elif action == 'cancel':
+        appointment.status = 'cancelled'
+        flash(f"Appointment #{appointment.id} cancelled.", "info")
+    else:
+        flash("Invalid action.", "warning")
+        return redirect(url_for('doctor_dashboard', username=username))
+
+    db.session.commit()
+    return redirect(url_for('doctor_dashboard', username=username))
+
+#route to view completed appointments
+@app.route('/doctor/<string:username>/completed_appointments')
+def completed_appointments(username):
+    user = User.query.filter_by(user_name=username, user_role='doctor').first()
+    if not user:
+        flash("Doctor not found.", "danger")
+        return redirect(url_for('login'))
+
+    doctor = Doctor.query.filter_by(id=user.id).first()
+    completed = Appointment.query.filter_by(doctor_id=doctor.id, status='completed').all()
+
+    return render_template('DoctorUI/completed_appointments.html', username=username, doctor=doctor, completed=completed)
+
+#route to add patient history after appointment completion
+@app.route('/doctor/<string:username>/add_history/<int:appointment_id>', methods=['GET', 'POST'])
+def add_history(username, appointment_id):
+    appointment = Appointment.query.get_or_404(appointment_id)
+    user = User.query.filter_by(user_name=username, user_role='doctor').first()
+    if not user:
+        flash("Doctor not found.", "danger")
+        return redirect(url_for('login'))
+
+    doctor = Doctor.query.filter_by(id=user.id).first()
+    patient = appointment.patient
+
+    if request.method == 'POST':
+        diagnosis = request.form.get('diagnosis')
+        treatment = request.form.get('treatment')
+        prescription = request.form.get('prescription')
+
+        new_record = PatientHistory(
+            patient_id=patient.id,
+            doctor_id=doctor.id,
+            appointment_id=appointment.id,
+            diagnosis=diagnosis,
+            treatment=treatment,
+            prescription=prescription
+        )
+        db.session.add(new_record)
+        db.session.commit()
+
+        flash('Patient history successfully recorded.', 'success')
+        return redirect(url_for('completed_appointments', username=username))
+
+    return render_template('DoctorUI/add_history.html',
+                           username=username,
+                           appointment=appointment,
+                           patient=patient)
 
 
 @app.route('/patient_dashboard/<username>')

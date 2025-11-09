@@ -1,11 +1,142 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    welcome {{ username }} to your dashboard  
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Doctor Dashboard{% endblock %}
+{% block style %}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+
+    #background_image {
+        background-image: url("/static/images/Doc-Patient\ bg.jpg");
+        background-size: cover;
+        background-position: center;
+        min-height: 100vh;
+        padding: 80px 20px 20px 20px;
+        background-repeat: no-repeat;
+        width: 100%;
+    }
+
+
+    .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+    }
+
+
+    .content-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+
+    .card {
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+
+    .list-group-item {
+        background-color: transparent;
+    }
+</style>
+
+{% endblock %}
+{% block content %}
+<div id="background_image">
+    <div class="content-wrapper">
+        <!-- Flash messages for success/error notifications -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, msg in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Upcoming Appointments Card -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <strong>Upcoming Appointments</strong>
+                <a href="{{ url_for('completed_appointments', username=username) }}"
+                    class="btn  bg-success text-white btn-sm ">View Completed Appointments</a>
+            </div>
+            <div class="card-body p-0">
+                {% if upcoming %}
+                <table class="table mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Patient</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appt in upcoming %}
+                        <tr>
+                            <td>{{ appt.id }}</td>
+                            <td>{{ appt.patient.patient_name }}</td>
+                            <td>{{ appt.appointment_date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ appt.appointment_time.strftime('%H:%M') }}</td>
+                            <td>{{ appt.status }}</td>
+                            <td>
+                                <!-- Form to mark appointment as completed -->
+                                <form
+                                    action="{{ url_for('update_appointment_status', appointment_id=appt.id, action='complete', username=username) }}"
+                                    method="post" style="display:inline-block;">
+                                    <button class="btn btn-success btn-sm" type="submit">Mark Completed</button>
+                                </form>
+                                <!-- Form to cancel appointment -->
+                                <form
+                                    action="{{ url_for('update_appointment_status', appointment_id=appt.id, action='cancel', username=username) }}"
+                                    method="post" style="display:inline-block;">
+                                    <button class="btn btn-danger btn-sm" type="submit">Cancel</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="p-3">
+                    <em>No upcoming appointments.</em>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Assigned Patients Card -->
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <strong>Assigned Patients</strong>
+            </div>
+            <div class="card-body">
+                {% if assigned_patients %}
+                <ul class="list-group">
+                    {% for patient in assigned_patients %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ patient.patient_name }}</span>
+                        <a href="#" class="btn btn-outline-primary btn-sm disabled">View History</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="mb-0"><em>No assigned patients yet.</em></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
