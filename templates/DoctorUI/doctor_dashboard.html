@@ -84,11 +84,11 @@
                 <table class="table mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>#</th>
-                            <th>Patient</th>
+                            <th>S. No.</th>
+                            <th>Patient Name</th>
                             <th>Date</th>
                             <th>Time</th>
-                            <th>Status</th>
+                            <th>Patient History</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -99,7 +99,12 @@
                             <td>{{ appt.patient.patient_name }}</td>
                             <td>{{ appt.appointment_date.strftime('%Y-%m-%d') }}</td>
                             <td>{{ appt.appointment_time.strftime('%H:%M') }}</td>
-                            <td>{{ appt.status }}</td>
+                            <td>
+                                <a href="{{ url_for('add_history', username=username, appointment_id=appt.id) }}"
+                                    class="btn btn-primary btn-sm">
+                                    Update
+                                </a>
+                            </td>
                             <td>
                                 <!-- Form to mark appointment as completed -->
                                 <form
@@ -139,10 +144,9 @@
                         <span>
                             {{ patient.patient_name }}
                         </span>
-                        <a href="{{ url_for('view_patient_history', username=username, patient_id=patient.id) }}"
-                            class="btn btn-outline-primary btn-sm">
-                            View History
-                        </a>
+                        <a href="{{ url_for('view_patient_history', role='doctor', username=username, patient_id=patient.id) }}"
+                            class="btn btn-outline-primary btn-sm">View History</a>
+
 
                     </li>
                     {% endfor %}

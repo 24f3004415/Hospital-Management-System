@@ -1,2 +1,155 @@
-this is patients dashboard
-welcome {{ username }} to your dashboard
+{% extends "base.html" %}
+{% block title %}Patient Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Search doctors -->
+    <div class="card mb-3 p-3">
+        <form method="get" action="{{ url_for('patient_dashboard', username=username) }}">
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <input type="text" name="q" class="form-control" placeholder="Search doctor by name"
+                        value="{{ q }}">
+                </div>
+                <div class="col-md-4">
+                    <select name="dept" class="form-select">
+                        <option value="">All Departments</option>
+                        {% for d in departments %}
+                        <option value="{{ d.id }}" {% if dept_id==d.id %}selected{% endif %}>{{ d.department_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100">Search</button>
+                </div>
+            </div>
+        </form>
+
+        {% if found_doctors %}
+        <hr>
+        <h6>Search Results</h6>
+        <div class="list-group">
+            {% for doc in found_doctors %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ doc.user.user_name }}</strong><br>
+                    <small class="text-muted">{{ doc.department.department_name }}</small>
+                </div>
+                <div>
+                    <a href="{{ url_for('doctor_view', doctor_id=doc.id, username=username) }}"
+                        class="btn btn-outline-primary btn-sm">Check Availability</a>
+                    <a href="{{ url_for('doctor_view', doctor_id=doc.id, username=username) }}"
+                        class="btn btn-outline-secondary btn-sm">View Details</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <!-- Departments -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header"><strong>Departments</strong></div>
+                <div class="list-group list-group-flush">
+                    {% for d in departments %}
+                    <!-- FIXED: Added username parameter -->
+                    <a href="{{ url_for('department_detail', dept_id=d.id, username=username) }}"
+                        class="list-group-item list-group-item-action">
+                        {{ d.department_name }}
+                        <span class="badge bg-primary float-end">View</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Appointments -->
+        <div class="col-md-8">
+            <div class="card mb-3">
+                <div class="card-header"><strong>Upcoming Appointments</strong></div>
+                <div class="card-body">
+                    {% if upcoming %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Doctor</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in upcoming %}
+                            <tr>
+                                <td>{{ a.id }}</td>
+                                <td>{{ a.doctor.user.user_name }} <br><small>{{ a.doctor.department.department_name
+                                        }}</small></td>
+                                <td>{{ a.appointment_date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ a.appointment_time.strftime('%H:%M') }}</td>
+                                <td>{{ a.status }}</td>
+                                <td>
+                                    <form method="post"
+                                        action="{{ url_for('patient_cancel_appointment', username=username, appointment_id=a.id) }}"
+                                        style="display:inline;">
+                                        <button class="btn btn-danger btn-sm" type="submit">Cancel</button>
+                                    </form>
+                                    <a href="{{ url_for('view_patient_history', role='patient', username=username, patient_id=patient.id) }}"
+                                        class="btn btn-outline-primary btn-sm">History</a>
+
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p>No upcoming appointments.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><strong>Past Appointments</strong></div>
+                <div class="card-body">
+                    {% if past %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Doctor</th>
+                                <th>Date</th>
+                                <th>Diagnosis / Prescription</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in past %}
+                            <tr>
+                                <td>{{ a.id }}</td>
+                                <td>{{ a.doctor.user.user_name }}</td>
+                                <td>{{ a.appointment_date.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    {% if a.history_record %}
+                                    <strong>Diagnosis:</strong> {{ a.history_record.diagnosis }}<br>
+                                    <strong>Rx:</strong> {{ a.history_record.prescription }}
+                                    {% else %}
+                                    <em>No record available</em>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p>No past appointments.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

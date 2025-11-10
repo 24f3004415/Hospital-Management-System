@@ -16,10 +16,10 @@
     <table class="table table-bordered table-hover align-middle">
       <thead class="table-light">
         <tr>
-          <th>#</th>
+          <th>S.no.</th>
           <th>Date</th>
           <th>Visit Type</th>
-          <th>Department</th>
+          <th>Test Done</th>
           <th>Doctor</th>
           <th>Diagnosis</th>
           <th>Treatment</th>
@@ -32,7 +32,7 @@
           <td>{{ loop.index }}</td>
           <td>{{ record.created_at.strftime('%Y-%m-%d') }}</td>
           <td>{{ record.visit_type or '-' }}</td>
-          <td>{{ record.department or '-' }}</td>
+          <td>{{ record.test_type or '-' }}</td>
           <td>{{ record.doctor_name or record.doctor.user.user_name }}</td>
           <td>{{ record.diagnosis or '-' }}</td>
           <td>{{ record.treatment or '-' }}</td>
@@ -46,6 +46,7 @@
   <div class="alert alert-info">No medical history available for this patient.</div>
   {% endif %}
 
-  <a href="{{ url_for('doctor_dashboard', username=username) }}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+  <a href="{{ back_url }}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+
 </div>
 {% endblock %}

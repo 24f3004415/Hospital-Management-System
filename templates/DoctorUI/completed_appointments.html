@@ -22,7 +22,6 @@
                 <th>Date</th>
                 <th>Time</th>
                 <th>Status</th>
-                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -33,10 +32,7 @@
                 <td>{{ appt.appointment_date.strftime('%Y-%m-%d') }}</td>
                 <td>{{ appt.appointment_time.strftime('%H:%M') }}</td>
                 <td><span class="badge bg-success">{{ appt.status }}</span></td>
-                <td>
-                    <a href="{{ url_for('add_history', username=username, appointment_id=appt.id) }}"
-                        class="btn btn-primary btn-sm">Add Treatment Record</a>
-                </td>
+                
             </tr>
             {% endfor %}
         </tbody>

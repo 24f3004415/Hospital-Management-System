@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ doctor.user.user_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4>{{ doctor.user.user_name }}</h4>
+        <a href="{{ url_for('patient_dashboard', username=username) }}" class="btn btn-secondary btn-sm">Back</a>
+    </div>
+
+    <p><strong>Department:</strong> {{ doctor.department.department_name }}</p>
+    <p><strong>Experience:</strong> {{ doctor.experience_years or '-' }} years</p>
+
+    <h6 class="mt-4">Doctor's Availability</h6>
+
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Available Slots</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in next_week %}
+                <tr>
+                    <td>{{ d.strftime('%Y-%m-%d') }} <br><small>{{ d.strftime('%A') }}</small></td>
+                    <td>
+                        {% set s = slots_map.get(d) %}
+                        {% if s %}
+                        {% for slot in s %}
+                        {% if slot.is_available %}
+                        <form method="post"
+                            action="{{ url_for('book_appointment', username=username, doctor_id=doctor.id, slot_date=d.strftime('%Y-%m-%d'), start_time=slot.start_time.strftime('%H:%M')) }}"
+                            style="display:inline-block;">
+                            <button class="btn btn-outline-success btn-sm m-1" type="submit">
+                                {{ slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }}
+                            </button>
+                        </form>
+                        {% else %}
+                        <button class="btn btn-outline-secondary btn-sm m-1 disabled" type="button">{{
+                            slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }}</button>
+                        {% endif %}
+                        {% endfor %}
+                        {% else %}
+                        <em>No slots</em>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

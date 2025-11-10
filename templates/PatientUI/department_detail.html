@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Department - {{ department.department_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h4>Department of {{ department.department_name }}</h4>
+    <h3>Overview</h3>
+    <p>{{ department.description }}</p>
+
+    <div class="list-group">
+        {% for doc in doctors %}
+        <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <strong>{{ doc.user.user_name }}</strong><br>
+                <small class="text-muted">{{ department.department_name }}</small>
+            </div>
+            <div>
+                <a href="{{ url_for('doctor_view', doctor_id=doc.id, username=session.get('user_name') or 'guest') }}"
+                    class="btn btn-outline-primary btn-sm">
+                    Check Availability
+                </a>
+                <a href="{{ url_for('doctor_view', doctor_id=doc.id, username=session.get('user_name') or 'guest') }}"
+                    class="btn btn-outline-secondary btn-sm">
+                    View Details
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <a href="{{ url_for('patient_dashboard', username=username) }}" class="btn btn-secondary mt-3">Back</a>
+</div>
+{% endblock %}
