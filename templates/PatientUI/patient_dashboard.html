@@ -1,8 +1,58 @@
 {% extends "base.html" %}
 {% block title %}Patient Dashboard{% endblock %}
 
+{% block style %}
+<style>
+    body {
+        background-image: url('/static/images/Doc-Patient\ bg.jpg');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        min-height: 100vh;
+    }
+
+    .card {
+        background-color: rgba(255, 255, 255, 0.95);
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background-color: rgba(248, 249, 250, 0.95);
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+    }
+
+    .table {
+        background-color: transparent;
+    }
+
+    .list-group-item {
+        background-color: rgba(255, 255, 255, 0.9);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="container mt-3">
+        {% for category, msg in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+    
+    <a href="{{ url_for('edit_profile', patient_id=patient.id) }}" class="btn btn-primary mb-3 w-auto">
+        Edit Profile
+    </a>
 
     <!-- Search doctors -->
     <div class="card mb-3 p-3">
@@ -49,14 +99,15 @@
         {% endif %}
     </div>
 
+
+    <!-- List of Available Departments -->
     <div class="row">
-        <!-- Departments -->
+        
         <div class="col-md-4">
             <div class="card mb-3">
-                <div class="card-header"><strong>Departments</strong></div>
+                <div class="card-header bg-primary text-white "><strong>Departments</strong></div>
                 <div class="list-group list-group-flush">
                     {% for d in departments %}
-                    <!-- FIXED: Added username parameter -->
                     <a href="{{ url_for('department_detail', dept_id=d.id, username=username) }}"
                         class="list-group-item list-group-item-action">
                         {{ d.department_name }}
@@ -67,85 +118,92 @@
             </div>
         </div>
 
-        <!-- Appointments -->
+        <!-- List of upcoming  Appointments -->
         <div class="col-md-8">
             <div class="card mb-3">
-                <div class="card-header"><strong>Upcoming Appointments</strong></div>
+                <div class="card-header bg-primary text-white"><strong>Upcoming Appointments</strong></div>
                 <div class="card-body">
                     {% if upcoming %}
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Doctor</th>
-                                <th>Date</th>
-                                <th>Time</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for a in upcoming %}
-                            <tr>
-                                <td>{{ a.id }}</td>
-                                <td>{{ a.doctor.user.user_name }} <br><small>{{ a.doctor.department.department_name
-                                        }}</small></td>
-                                <td>{{ a.appointment_date.strftime('%Y-%m-%d') }}</td>
-                                <td>{{ a.appointment_time.strftime('%H:%M') }}</td>
-                                <td>{{ a.status }}</td>
-                                <td>
-                                    <form method="post"
-                                        action="{{ url_for('patient_cancel_appointment', username=username, appointment_id=a.id) }}"
-                                        style="display:inline;">
-                                        <button class="btn btn-danger btn-sm" type="submit">Cancel</button>
-                                    </form>
-                                    <a href="{{ url_for('view_patient_history', role='patient', username=username, patient_id=patient.id) }}"
-                                        class="btn btn-outline-primary btn-sm">History</a>
-
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>S. No.</th>
+                                    <th>Doctor</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for a in upcoming %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ a.doctor.user.user_name }} <br><small>{{ a.doctor.department.department_name
+                                            }}</small></td>
+                                    <td>{{ a.appointment_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ a.appointment_time.strftime('%H:%M') }}</td>
+                                    <td><span class="badge bg-info">{{ a.status }}</span></td>
+                                    <td>
+                                        <form method="post"
+                                            action="{{ url_for('patient_cancel_appointment', username=username, appointment_id=a.id) }}"
+                                            style="display:inline;">
+                                            <button class="btn btn-danger btn-sm" type="submit">Cancel</button>
+                                        </form>
+                                        <a href="{{ url_for('view_patient_history', role='patient', username=username, patient_id=patient.id) }}"
+                                            class="btn btn-outline-primary btn-sm">History</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                     {% else %}
-                    <p>No upcoming appointments.</p>
+                    <p class="text-muted">No upcoming appointments.</p>
                     {% endif %}
                 </div>
             </div>
 
+
+            <!-- List of Past Appointments -->
             <div class="card">
-                <div class="card-header"><strong>Past Appointments</strong></div>
+                <div class="card-header bg-primary text-white"><strong>Past Appointments</strong></div>
                 <div class="card-body">
                     {% if past %}
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Doctor</th>
-                                <th>Date</th>
-                                <th>Diagnosis / Prescription</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for a in past %}
-                            <tr>
-                                <td>{{ a.id }}</td>
-                                <td>{{ a.doctor.user.user_name }}</td>
-                                <td>{{ a.appointment_date.strftime('%Y-%m-%d') }}</td>
-                                <td>
-                                    {% if a.history_record %}
-                                    <strong>Diagnosis:</strong> {{ a.history_record.diagnosis }}<br>
-                                    <strong>Rx:</strong> {{ a.history_record.prescription }}
-                                    {% else %}
-                                    <em>No record available</em>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Doctor</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Diagnosis / Prescription</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for a in past %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ a.doctor.user.user_name }}</td>
+                                    <td>{{ a.appointment_date.strftime('%Y-%m-%d') }}</td>
+                                    <td><span class="badge bg-info">{{ a.status }}</span></td>
+                                    <td>
+                                        {% if a.history_record %}
+                                        <strong>Diagnosis:</strong> {{ a.history_record.diagnosis }}<br>
+                                        <strong>Rx:</strong> {{ a.history_record.prescription }}
+                                        {% else %}
+                                        <em class="text-muted">No record available</em>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                     {% else %}
-                    <p>No past appointments.</p>
+                    <p class="text-muted">No past appointments.</p>
                     {% endif %}
                 </div>
             </div>

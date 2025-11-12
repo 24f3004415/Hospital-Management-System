@@ -1,13 +1,31 @@
 {% extends "base.html" %}
 {% block title %}Add Patient History{% endblock %}
 
+{% block style %}
+<style>
+    body {
+        background-image: url('/static/images/Doc-Patient\ bg.jpg');
+        background-size: cover;
+        background-repeat: no-repeat;
+    }
+
+    .content-wrapper {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        padding: 35px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h4 class="text-primary mb-3">Add Patient History</h4>
+    <div class="content-wrapper">
+        <h4>Add Patient History</h4>
 
-    <div class="card p-4 shadow-sm">
-        <p><strong>Patient:</strong> {{ patient.patient_name }}</p>
-        <p><strong>Appointment ID:</strong> {{ appointment.id }}</p>
+        <div class="patient-info">
+            <p><strong>Patient:</strong> {{ patient.patient_name }}</p>
+            <p><strong>Appointment ID:</strong> {{ appointment.id }}</p>
+        </div>
 
         <form method="POST">
             <div class="mb-3">
@@ -35,7 +53,7 @@
                 <textarea class="form-control" id="prescription" name="prescription" rows="1" required></textarea>
             </div>
 
-            <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between mt-4">
                 <a href="{{ url_for('doctor_dashboard', username=username) }}" class="btn btn-secondary">Back</a>
                 <button type="submit" class="btn btn-success">Save Record</button>
             </div>

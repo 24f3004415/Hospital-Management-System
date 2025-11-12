@@ -1,55 +1,156 @@
 {% extends "base.html" %}
 {% block title %}{{ doctor.user.user_name }}{% endblock %}
 
+{% block style %}
+<style>
+    body {
+        background-image: url('/static/images/Doc-Patient\ bg.jpg');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        min-height: 100vh;
+    }
+
+    .content-wrapper {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        padding: 25px;
+    }
+
+    .doctor-header {
+        border-bottom: 3px solid #0d6efd;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .doctor-header h4 {
+        color: #0d6efd;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .doctor-info {
+        background-color: rgba(13, 110, 253, 0.05);
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+    }
+
+    .doctor-info p {
+        margin-bottom: 10px;
+        color: #495057;
+    }
+
+    .availability-section h6 {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .table {
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .table thead {
+        background-color: #f8f9fa;
+    }
+
+    .table thead th {
+        color: #495057;
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(13, 110, 253, 0.03);
+    }
+
+    .btn-outline-success {
+        transition: all 0.2s ease;
+    }
+
+    .btn-outline-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 4px rgba(25, 135, 84, 0.3);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <h4>{{ doctor.user.user_name }}</h4>
-        <a href="{{ url_for('patient_dashboard', username=username) }}" class="btn btn-secondary btn-sm">Back</a>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="container mt-3">
+        {% for category, msg in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
     </div>
+    {% endif %}
+    {% endwith %}
 
-    <p><strong>Department:</strong> {{ doctor.department.department_name }}</p>
-    <p><strong>Experience:</strong> {{ doctor.experience_years or '-' }} years</p>
+    <div class="content-wrapper">
+        <div class="d-flex justify-content-between align-items-center doctor-header">
+            <h4>{{ doctor.user.user_name }}</h4>
+            <a href="{{ url_for('patient_dashboard', username=username) }}" class="btn btn-secondary btn-sm">Back</a>
+        </div>
 
-    <h6 class="mt-4">Doctor's Availability</h6>
+        <div class="doctor-info">
+            <p><strong>Department:</strong> {{ doctor.department.department_name }}</p>
+            <p><strong>Experience:</strong> {{ doctor.experience_years or '-' }} years</p>
+        </div>
 
-    <div class="table-responsive">
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Available Slots</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for d in next_week %}
-                <tr>
-                    <td>{{ d.strftime('%Y-%m-%d') }} <br><small>{{ d.strftime('%A') }}</small></td>
-                    <td>
-                        {% set s = slots_map.get(d) %}
-                        {% if s %}
-                        {% for slot in s %}
-                        {% if slot.is_available %}
-                        <form method="post"
-                            action="{{ url_for('book_appointment', username=username, doctor_id=doctor.id, slot_date=d.strftime('%Y-%m-%d'), start_time=slot.start_time.strftime('%H:%M')) }}"
-                            style="display:inline-block;">
-                            <button class="btn btn-outline-success btn-sm m-1" type="submit">
-                                {{ slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }}
-                            </button>
-                        </form>
-                        {% else %}
-                        <button class="btn btn-outline-secondary btn-sm m-1 disabled" type="button">{{
-                            slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }}</button>
-                        {% endif %}
+        <div class="availability-section">
+            <h6>Available Slots - Book Your Appointment</h6>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Available Slots</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in next_week %}
+                        <tr>
+                            <td>
+                                <strong>{{ d.strftime('%Y-%m-%d') }}</strong><br>
+                                <small class="text-muted">{{ d.strftime('%A') }}</small>
+                            </td>
+                            <td>
+                                {% set s = slots_map.get(d) %}
+                                {% if s %}
+                                {% for slot in s %}
+                                {% if slot.is_available in [True, 1, '1'] %}
+                                <form method="post"
+                                    action="{{ url_for('book_appointment', username=username, doctor_id=doctor.id, slot_date=d.strftime('%Y-%m-%d'), start_time=slot.start_time.strftime('%H:%M')) }}"
+                                    style="display:inline-block;">
+                                    <button class="btn btn-outline-success btn-sm m-1" type="submit">
+                                        {{ slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }}
+                                    </button>
+                                </form>
+                                {% else %}
+                                <button class="btn btn-outline-secondary btn-sm m-1 disabled" type="button">
+                                    {{ slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }}
+                                </button>
+                                {% endif %}
+                                {% endfor %}
+                                {% else %}
+                                <em class="text-muted">No slots available</em>
+                                {% endif %}
+                            </td>
+                        </tr>
                         {% endfor %}
-                        {% else %}
-                        <em>No slots</em>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

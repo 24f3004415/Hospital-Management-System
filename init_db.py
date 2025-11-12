@@ -1,4 +1,3 @@
-# init_db.py
 from app import app, db
 from models import User
 

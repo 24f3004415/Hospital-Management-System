@@ -1,44 +1,102 @@
 {% extends "base.html" %}
 {% block title %}Completed Appointments{% endblock %}
 
+{% block style %}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background-image: url('/static/images/register\ bg.jpg');
+        background-size: cover;
+        background-repeat: no-repeat;
+
+    }
+    
+    .content-wrapper {
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    h4 {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 25px;
+    }
+    
+    .table {
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .table thead th {
+        background-color: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8f9ff;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h4 class="text-primary mb-3">Completed Appointments</h4>
+    <div class="content-wrapper">
+        <h4>Completed Appointments</h4>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    {% for category, msg in messages %}
-    <div class="alert alert-{{ category }}">{{ msg }}</div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, msg in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
 
-    {% if completed %}
-    <table class="table table-bordered table-hover">
-        <thead class="table-light">
-            <tr>
-                <th>#</th>
-                <th>Patient</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for appt in completed %}
-            <tr>
-                <td>{{ appt.id }}</td>
-                <td>{{ appt.patient.patient_name }}</td>
-                <td>{{ appt.appointment_date.strftime('%Y-%m-%d') }}</td>
-                <td>{{ appt.appointment_time.strftime('%H:%M') }}</td>
-                <td><span class="badge bg-success">{{ appt.status }}</span></td>
-                
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>No completed appointments yet.</p>
-    {% endif %}
+        {% if completed %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>S.No.</th>
+                        <th>Patient</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appt in completed %}
+                    <tr>
+                        <td>{{ appt.id }}</td>
+                        <td>{{ appt.patient.patient_name }}</td>
+                        <td>{{ appt.appointment_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ appt.appointment_time.strftime('%H:%M') }}</td>
+                        <td><span class="badge bg-success">{{ appt.status }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No completed appointments yet.</p>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

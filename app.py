@@ -175,27 +175,36 @@ def add_doctor():
     departments = Department.query.all()
     return render_template('AdminUI/add_doctor.html', departments=departments)
 
+
 # Route to delete a doctor
 @app.route('/admin/delete_doctor/<int:doctor_id>', methods=['POST'])
 def delete_doctor(doctor_id):
-    
-    doctor = Doctor.query.get(doctor_id)
-    
-    if doctor:
-       
-        user_id = doctor.id
+    # (Optional) check admin authorization here
 
-        db.session.delete(doctor)
-        db.session.commit() 
-        
-        user = User.query.get(user_id)
-        if user:
-            db.session.delete(user)
-            db.session.commit()
-        
-        flash("Doctor deleted successfully!")
-    
+    doctor = Doctor.query.get(doctor_id)
+    if not doctor:
+        flash("Doctor not found!")
+        return redirect(url_for('admin_dashboard'))
+
+    # 1) Remove dependent rows first (histories, appointments, availability)
+    PatientHistory.query.filter_by(doctor_id=doctor.id).delete()
+    Appointment.query.filter_by(doctor_id=doctor.id).delete()
+    DoctorAvailability.query.filter_by(doctor_id=doctor.id).delete()
+
+    # 2) Delete doctor row
+    db.session.delete(doctor)
+
+    # 3) Delete associated user row (if User.id == Doctor.id)
+    user = User.query.get(doctor.id)
+    if user:
+        db.session.delete(user)
+
+    # 4) Commit once
+    db.session.commit()
+
+    flash("Doctor and related records deleted successfully!")
     return redirect(url_for('admin_dashboard'))
+
 
 
 # Route to edit a doctor
@@ -279,28 +288,31 @@ def edit_patient(patient_id):
 # Route to delete a patient
 @app.route('/admin/delete_patient/<int:patient_id>', methods=['POST'])
 def delete_patient(patient_id):
-    # Find the patient
+    # (Optional) ensure current user is admin here
+
     patient = Patient.query.get(patient_id)
-    
     if not patient:
         flash("Patient not found!")
         return redirect(url_for('admin_dashboard'))
-    
-    # Get user id before deleting patient
-    user_id = patient.id
-    
-    # Delete patient first
+
+    # 1) Remove dependent rows first
+    PatientHistory.query.filter_by(patient_id=patient.id).delete()
+    Appointment.query.filter_by(patient_id=patient.id).delete()
+
+    # 2) Delete patient row
     db.session.delete(patient)
-    db.session.commit()
-    
-    # Delete user
-    user = User.query.get(user_id)
+
+    # 3) Delete corresponding user record (if applicable)
+    user = User.query.get(patient.id)
     if user:
         db.session.delete(user)
-        db.session.commit()
-    
-    flash("Patient deleted successfully!")
+
+    # 4) Commit once
+    db.session.commit()
+
+    flash("Patient and related records deleted successfully!")
     return redirect(url_for('admin_dashboard'))
+
 
 
 # Route to blacklist a patient
@@ -571,17 +583,22 @@ def patient_dashboard(username):
     # Upcoming appointments (today & future)
     today = date.today()
     upcoming = (Appointment.query
-                .filter_by(patient_id=patient.id)
-                .filter(Appointment.appointment_date >= today)
-                .order_by(Appointment.appointment_date, Appointment.appointment_time)
-                .all())
+        .filter_by(patient_id=patient.id)
+        .filter(
+            (Appointment.appointment_date >= today) &
+            (Appointment.status == 'booked'))
+            .order_by(Appointment.appointment_date, Appointment.appointment_time)
+            .all())
 
     # Past appointments (before today) to show in dashboard (or status completed)
     past = (Appointment.query
-            .filter_by(patient_id=patient.id)
-            .filter(Appointment.appointment_date < today)
-            .order_by(Appointment.appointment_date.desc())
-            .all())
+        .filter_by(patient_id=patient.id)
+        .filter(
+            (Appointment.appointment_date < today) |
+            Appointment.status.in_(['completed', 'cancelled'])
+        )
+        .order_by(Appointment.appointment_date.desc())
+        .all())
 
     return render_template('PatientUI/patient_dashboard.html',
                            username=username,
@@ -607,12 +624,9 @@ def department_detail(dept_id, username):
                           username=username)
 
 
-# Doctor detail + availability and booking page
+# Doctor detail and  availability and booking page
 @app.route('/doctor/<int:doctor_id>/view/<string:username>', methods=['GET'])
 def doctor_view(doctor_id, username):
-    """
-    Shows doctor details and availability slots for booking
-    """
     doctor = Doctor.query.get_or_404(doctor_id)
     # next 7 days
     today = date.today()
@@ -632,21 +646,22 @@ def doctor_view(doctor_id, username):
                           slots_map=slots_map)
 
 
-# Booking route (patient books a single slot)
+# Apppointment Booking route 
 @app.route('/book_appointment/<string:username>/<int:doctor_id>/<string:slot_date>/<string:start_time>', methods=['POST'])
 def book_appointment(username, doctor_id, slot_date, start_time):
-    # find patient
+    # Find patient
     user = User.query.filter_by(user_name=username, user_role='patient').first()
     if not user:
         flash("Patient not found.", "danger")
         return redirect(url_for('login'))
-    patient = Patient.query.filter_by(id=user.id).first()
 
-    # validate doctor and slot
+    patient = Patient.query.filter_by(id=user.id).first()
     doctor = Doctor.query.get_or_404(doctor_id)
+
     slot_date_obj = datetime.strptime(slot_date, "%Y-%m-%d").date()
     start_time_obj = datetime.strptime(start_time, "%H:%M").time()
 
+    # Checking if slot exists and is available or not
     slot = DoctorAvailability.query.filter_by(
         doctor_id=doctor.id,
         date=slot_date_obj,
@@ -654,21 +669,30 @@ def book_appointment(username, doctor_id, slot_date, start_time):
         is_available=True
     ).first()
 
-    if not slot:
-        flash("Selected slot is not available. Please choose another.", "warning")
-        return redirect(url_for('doctor_view', doctor_id=doctor.id, username=username))
-
-    # create appointment: avoid double-booking (check if another appointment exists same doctor/date/time)
+    # Checking if the same slot is already booked by anyone (for the same doctor/date/time)
     exists = Appointment.query.filter_by(
         doctor_id=doctor.id,
-        appointment_date=slot.date,
-        appointment_time=slot.start_time,
+        appointment_date=slot_date_obj,
+        appointment_time=start_time_obj,
         status='booked'
     ).first()
-    if exists:
-        flash("This slot has already been booked by someone else. Please choose another.", "warning")
+
+    # checking if the patient already has an appointment that day
+    patient_same_day = Appointment.query.filter_by(
+        patient_id=patient.id,
+        appointment_date=slot_date_obj
+    ).filter(Appointment.status.in_(['booked', 'completed'])).first()
+
+    if patient_same_day:
+        flash("You already have an appointment booked on this date with another doctor. Please choose a different day.", "warning")
         return redirect(url_for('doctor_view', doctor_id=doctor.id, username=username))
 
+    # Unified unavailable slot check
+    if not slot or exists:
+        flash("This slot has already been booked or is unavailable. Please choose another.", "warning")
+        return redirect(url_for('doctor_view', doctor_id=doctor.id, username=username))
+
+    #creating a new appointment when everything is valid
     new_appt = Appointment(
         patient_id=patient.id,
         doctor_id=doctor.id,
@@ -677,9 +701,14 @@ def book_appointment(username, doctor_id, slot_date, start_time):
         status='booked'
     )
     db.session.add(new_appt)
+
+    # Mark slot unavailable
+    slot.is_available = False
     db.session.commit()
+
     flash("Appointment booked successfully.", "success")
     return redirect(url_for('patient_dashboard', username=username))
+
 
 
 # Cancel appointment (patient)
@@ -702,6 +731,32 @@ def patient_cancel_appointment(username, appointment_id):
     return redirect(url_for('patient_dashboard', username=username))
 
 
+# Route to edit a patient's profile
+@app.route('/patient/edit_profile/<int:patient_id>', methods=['GET', 'POST'])
+def edit_profile(patient_id):
+    # Find the patient
+    patient = Patient.query.get(patient_id)
+    
+    if not patient:
+        flash("Patient not found!")
+        return redirect(url_for('admin_dashboard'))
+    
+    if request.method == 'POST':
+        # Get form data
+        name = request.form.get('name')
+        email = request.form.get('email')
+        
+        # Update user information
+        patient.user.user_name = name
+        patient.user.user_email = email
+        
+        # Save changes
+        db.session.commit()
+        flash("Profile updated successfully!", "success")
+        return redirect(url_for('patient_dashboard', username=patient.user.user_name))
+    
+    # GET request - show edit form
+    return render_template('PatientUI/edit_profile.html', patient=patient)
 
 
 

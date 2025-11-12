@@ -1,9 +1,28 @@
 {% extends "base.html" %}
 {% block title %}Doctor Availability{% endblock %}
 
+{% block style %}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        background-image: url('/static/images/admin-dash\ bg.jpg');
+        background-size: cover;
+        background-repeat: no-repeat;
+    }
+
+    .table {
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <h4 class="text-primary mb-3">Doctors's Availability</h4>
+<div class="container mt-4 ">
+    <h4 class="text-white fw-bold mb-3  text-center h2">Doctor's Availability</h4>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -19,7 +38,7 @@
     <form method="POST">
         <div class="table-responsive">
             <table class="table table-bordered align-middle">
-                <thead class="table-light">
+                <thead class="table-success">
                     <tr>
                         <th>Date</th>
                         <th>Day</th>
@@ -36,11 +55,11 @@
                         <td>{{ d.strftime('%A') }}</td>
                         <td>
                             <input type="time" name="start_{{ d }}" class="form-control"
-                                value="{{ record.start_time.strftime('%H:%M') if record else '' }}" required>
+                                value="{{ record.start_time.strftime('%H:%M') if record else '' }}">
                         </td>
                         <td>
                             <input type="time" name="end_{{ d }}" class="form-control"
-                                value="{{ record.end_time.strftime('%H:%M') if record else '' }}" required>
+                                value="{{ record.end_time.strftime('%H:%M') if record else '' }}">
                         </td>
                         <td class="text-center">
                             <input type="checkbox" name="avail_{{ d }}" {% if record and record.is_available %}checked{%
@@ -52,9 +71,11 @@
             </table>
         </div>
 
-        <div class="d-flex justify-content-between mt-3">
-            <a href="{{ url_for('doctor_dashboard', username=username) }}" class="btn btn-secondary">Back</a>
-            <button type="submit"  class="btn btn-success">
+        <div class="d-flex justify-content-between mt-2">
+            <a href="{{ url_for('doctor_dashboard', username=username) }}" class="btn btn-secondary w-25 m-2">
+                Back
+            </a>
+            <button type="submit" class="btn btn-success w-100 m-2">
                 Save Availability
             </button>
         </div>
