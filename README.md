@@ -1,33 +1,96 @@
-# Hospital-Management-System
+# 🏥 Matrix HMS — Hospital Management System
 
-Hospital Management System (HMS) web application that allows Admins, Doctors, and Patients to interact with the system based on their roles.
+> A full-stack **Flask + SQLite3** web application for managing hospital operations — including admin, doctor, and patient dashboards.  
+> Built with a clean MVC architecture and Bootstrap UI
 
-Name- Mohit Kumar Rai
-Roll No - 24f3004415
+---
 
-"""
-RELATIONSHIP MAPPING:
+## 📋 Project Overview
 
-1. User ←→ Doctor (one-to-one)
-   - User.doctor_profile ←→ Doctor.user
+Matrix HMS (Hospital Management System) is designed to streamline hospital workflows by enabling three major roles — **Admin**, **Doctor**, and **Patient** — each with their own dedicated dashboard and functionality.
 
-2. User ←→ Patient (one-to-one)
-   - User.patient_profile ←→ Patient.user
+This project focuses on user authentication, appointment management, patient history tracking, and doctor availability scheduling, all within a simple, database-driven web interface.
 
-3. Department ←→ Doctor (one-to-many)
-   - Department.doctors ←→ Doctor.department
+---
 
-4. Doctor ←→ Appointment (one-to-many)
-   - Doctor.appointments ←→ Appointment.doctor
+## 🚀 Features by Role
 
-5. Patient ←→ Appointment (one-to-many)
-   - Patient.appointments ←→ Appointment.patient
+### 👨‍💼 Admin
+- Create and manage **Doctors** and **Departments**
+- View all registered **Patients** and **Doctors**
+- Monitor upcoming **Appointments**
+- Access **Patient medical history**
+- Assign doctors to departments
 
-6. Appointment ←→ Treatment (one-to-one)
-   - Appointment.treatment ←→ Treatment.appointment
+### 👨‍⚕️ Doctor
+- View assigned **Appointments**
+- Mark appointments as **Completed** or **Cancelled**
+- Add **Diagnosis**, **Treatment**, and **Prescriptions**
+- View complete **Patient Medical History**
+- Manage and provide **Availability Schedule** (next 7 days)
+- User-friendly dashboard with Bootstrap UI
 
-7. Patient ←→ PatientHistory (one-to-many)
-   - Patient.medical_history ←→ PatientHistory.patient
+### 🧑‍🤝‍🧑 Patient
+- Register and log in 
+- Update **Profile** details (name, email, etc.)
+- View and search **Doctors by specialization**
+- Book, reschedule, or cancel **Appointments**
+- View upcoming and past **Appointments**
+- Access complete **Medical History**
 
-8. Doctor ←→ DoctorAvailability (one-to-many)
-   - Doctor.availability_slots ←→ DoctorAvailability.doctor
+---
+
+## 🧱 Tech Stack
+
+| Layer | Technology |
+|-------|-------------|
+| **Backend Framework** | Flask (Python) |
+| **Frontend** | HTML5, CSS3, Bootstrap 5 |
+| **Database** | SQLite3 (via SQLAlchemy ORM) |
+| **Templating Engine** | Jinja2 |
+| **Version Control** | Git + GitHub |
+| **Virtual Environment** | venv (Python 3.x) |
+
+---
+
+## 📂 Folder Structure
+
+HOSPITAL-MANAGEMENT-SYSTEM/
+│
+├── app.py # Main Flask application
+├── models.py # Database models using SQLAlchemy
+├── init_db.py # Database initialization script
+├── instance/
+│ └── hospital.db # SQLite database file
+│
+├── static/
+│ ├── css/ # Custom CSS files
+│ └── images/ # Image assets
+│
+├── templates/
+│ ├── AdminUI/ # Admin dashboards and forms
+│ ├── DoctorUI/ # Doctor dashboards and forms
+│ ├── PatientUI/ # Patient dashboards and forms
+│ ├── base.html # Common layout for all pages
+│ ├── login.html # User login page
+│ ├── signup.html # Registration page
+│ └── landing.html # Home/landing page
+│
+├── Venv/ # Python virtual environment
+├── README.md # Project documentation
+└── requirements.txt # Python dependencies
+
+
+
+---
+
+## 🧩 Database Models
+
+- **User** → Base model (Admin / Doctor / Patient)
+- **Doctor** → Extends `User`, linked to `Department`
+- **Patient** → Extends `User`, linked to `Appointments` & `PatientHistory`
+- **Appointment** → Doctor-Patient booking
+- **PatientHistory** → Stores diagnosis, treatment, prescription details
+- **DoctorAvailability** → Tracks available slots for next 7 days
+- **Department** → Specializations (Cardiology, ENT, etc.)
+
