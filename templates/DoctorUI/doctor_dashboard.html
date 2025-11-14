@@ -95,7 +95,7 @@
                     <tbody>
                         {% for appt in upcoming %}
                         <tr>
-                            <td>{{ appt.id }}</td>
+                            <td>{{ loop.index }}</td>
                             <td>{{ appt.patient.patient_name }}</td>
                             <td>{{ appt.appointment_date.strftime('%Y-%m-%d') }}</td>
                             <td>{{ appt.appointment_time.strftime('%H:%M') }}</td>

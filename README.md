@@ -54,34 +54,33 @@ This project focuses on user authentication, appointment management, patient his
 ---
 
 ## 📂 Folder Structure
-
+```
 HOSPITAL-MANAGEMENT-SYSTEM/
 │
-├── app.py # Main Flask application
-├── models.py # Database models using SQLAlchemy
-├── init_db.py # Database initialization script
-├── instance/
-│ └── hospital.db # SQLite database file
+├── 📄 app.py                    # Main Flask application
+├── 📄 models.py                 # Database models using SQLAlchemy
+├── 📄 init_db.py                # Database initialization script
 │
-├── static/
-│ ├── css/ # Custom CSS files
-│ └── images/ # Image assets
+├── 📁 instance/
+│   └── 🗄️ hospital.db           # SQLite database file
 │
-├── templates/
-│ ├── AdminUI/ # Admin dashboards and forms
-│ ├── DoctorUI/ # Doctor dashboards and forms
-│ ├── PatientUI/ # Patient dashboards and forms
-│ ├── base.html # Common layout for all pages
-│ ├── login.html # User login page
-│ ├── signup.html # Registration page
-│ └── landing.html # Home/landing page
+├── 📁 static/
+│   ├── 🎨 css/                  # Custom CSS files
+│   └── 🖼️ images/               # Image assets
 │
-├── Venv/ # Python virtual environment
-├── README.md # Project documentation
-└── requirements.txt # Python dependencies
-
-
-
+├── 📁 templates/
+│   ├── 👨‍💼 AdminUI/              # Admin dashboards and forms
+│   ├── 👨‍⚕️ DoctorUI/             # Doctor dashboards and forms
+│   ├── 🧑‍🤝‍🧑 PatientUI/            # Patient dashboards and forms
+│   ├── 📄 base.html             # Common layout for all pages
+│   ├── 🔐 login.html            # User login page
+│   ├── ✍️ signup.html           # Registration page
+│   └── 🏠 landing.html          # Home/landing page
+│
+├── 🐍 Venv/                     # Python virtual environment
+├── 📖 README.md                 # Project documentation
+└── 📋 requirements.txt          # Python dependencies
+```
 ---
 
 ## 🧩 Database Models
